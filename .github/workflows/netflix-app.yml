@@ -1,0 +1,27 @@
+name: netflix-app
+
+on:
+  push:
+    branches:
+      - master
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Set up SSH access
+      run: |
+        mkdir -p ~/.ssh
+        echo "${{ secrets.VM_SSH_KEY }}" > ~/.ssh/id_rsa
+        chmod 600 ~/.ssh/id_rsa
+        ssh-keyscan -H ${{ secrets.VM_HOST }} >> ~/.ssh/known_hosts
+
+    - name: Deploy HTML/CSS files via rsync
+      run: |
+        rsync -avz --delete \
+          ./ \
+          ${{ secrets.VM_USER }}@${{ secrets.VM_HOST }}:${{ secrets.TARGET_DIR || '/var/www/html' }}
