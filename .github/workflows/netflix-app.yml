@@ -22,6 +22,6 @@ jobs:
 
     - name: Deploy HTML/CSS files via rsync
       run: |
-        rsync -avz --delete \
+        sudo rsync -avz --delete \
           ./ \
           ${{ secrets.VM_USER }}@${{ secrets.VM_HOST }}:${{ secrets.TARGET_DIR || '/var/www/html' }}
