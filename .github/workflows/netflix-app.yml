@@ -10,18 +10,20 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - name: Checkout repository
+    - name: Checkout repo
       uses: actions/checkout@v4
 
-    - name: Set up SSH access
+    - name: Set up SSH
       run: |
         mkdir -p ~/.ssh
         echo "${{ secrets.VM_SSH_KEY }}" > ~/.ssh/id_rsa
         chmod 600 ~/.ssh/id_rsa
-        ssh-keyscan -p 22 ${{ secrets.VM_HOST }} >> ~/.ssh/known_hosts
 
-    - name: Deploy HTML/CSS files via rsync
+       
+
+    - name: Deploy to VM via rsync
       run: |
-        sudo rsync -avz --delete \
+        rsync -avz --delete \
+          -e "ssh -i ~/.ssh/id_rsa -o StrictHostKeyChecking=yes" \
           ./ \
-          ${{ secrets.VM_USER }}@${{ secrets.VM_HOST }}:${{ secrets.TARGET_DIR || '/var/www/html' }}
+          "${{ secrets.VM_USER }}@${{ secrets.VM_HOST }}:/var/www/html"
