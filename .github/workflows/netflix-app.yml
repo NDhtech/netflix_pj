@@ -10,20 +10,21 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - name: Checkout repo
-      uses: actions/checkout@v4
+    - name: Checkout code
+      uses: actions/checkout@v3
 
-    - name: Set up SSH
+    - name: Set up SSH key
       run: |
-        mkdir -p ~/.ssh
-        echo "${{ secrets.VM_SSH_KEY }}" > ~/.ssh/id_rsa
-        chmod 600 ~/.ssh/id_rsa
+        echo "${{ secrets.SSH_KEY }}" > key.pem
+        chmod 600 key.pem
 
        
 
-    - name: Deploy to VM via rsync
+    - name: Deploy to EC2
       run: |
-        rsync -avz --delete \
-          -e "ssh -i ~/.ssh/id_rsa -o StrictHostKeyChecking=yes" \
-          ./ \
-          "${{ secrets.VM_USER }}@${{ secrets.VM_HOST }}:/var/www/html"
+        ssh -o StrictHostKeyChecking=no -i key.pem ${{ secrets.USERNAME }}@${{ secrets.HOST }} << 'EOF'
+        sudo yum install httpd git -y
+        sudo systemctl restart httpd 
+        sudo git clone https://github.com/pro-prodipto/Netflix-Website-Project.git
+        sudo cp -r /home/${{ secrets.USERNAME }}/Netflix-Website-Project/* /var/www/html
+        EOF
